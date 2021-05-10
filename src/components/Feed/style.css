@@ -1,0 +1,11 @@
+.feed-container {
+  margin: 0  16px;
+}
+.feed-container .feed-content  {
+  height: 384px;
+  width: 384px;
+  overflow: hidden;
+}
+.feed-container .feed-content.user-feed  {
+  border: 1px solid black;
+}
