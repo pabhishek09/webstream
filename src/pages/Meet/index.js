@@ -32,6 +32,7 @@ function Meet() {
 
   useEffect(() => {
     setUpMeet()
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ function Meet() {
       const newFeed = <Feed isHost='false' key={`remote-feed-${index}`} idAttr={`remote-video-${index}`}/>;
       setRemoteFeed([ ...remoteFeed, newFeed]);
     }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [participantCount]);
 
   async function setUpMeet() {
