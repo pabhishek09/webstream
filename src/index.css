@@ -7,28 +7,26 @@
 @layer base {
   @font-face {
     font-family: "Sans Regular";
-    font-weight: 400;
     src: url(./assets/fonts/SourceSansPro-Regular.ttf) format("ttf");
   }
   @font-face {
+    font-family: "Sans Semi Bold";
+    src: url(./assets/fonts/SourceSansPro-SemiBold.ttf) format("ttf");
+  }
+  @font-face {
     font-family: "Sans Bold";
-    font-weight: 400;
     src: url(./assets/fonts/SourceSansPro-Bold.ttf) format("ttf");
   }
   @font-face {
-    font-family: "Sans Semi Bold";
-    font-weight: 400;
-    src: url(./assets/fonts/SourceSansPro-SemiBold.ttf) format("ttf");
+    font-family: "Sans Black";
+    src: url(./assets/fonts/SourceSansPro-Black.ttf) format("ttf");
   }
+}
 
-  h1, h2 {
-    font-family: "Sans Bold";
-  }
+.text-white.font-sansblack {
+  font-family: "Sans Black";
+}
 
-  h3, h4, button {
-    font-family: "Sans Semi Bold";
-  }
-  h5, h6, p, span, a {
-    font-family: "Sans Regular";
-  }
+.text-white {
+  font-family: "Sans Regular";
 }
