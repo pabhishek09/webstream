@@ -18,6 +18,18 @@ function Meet() {
       // for a custom implementation of stun/turn servers
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
+      {
+        urls: 'turn:relay.backups.cz',
+        credential: 'webrtc',
+        username: 'webrtc',
+        credentialType: 'password',
+      },
+      {
+        urls: 'turn:relay.backups.cz?transport=tcp',
+        credential: 'webrtc',
+        username: 'webrtc',
+        credentialType: 'password',
+      },
     ]
   };
   const constraints = {
@@ -32,6 +44,7 @@ function Meet() {
 
   useEffect(() => {
     setUpMeet()
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -40,6 +53,7 @@ function Meet() {
       const newFeed = <Feed isHost='false' key={`remote-feed-${index}`} idAttr={`remote-video-${index}`}/>;
       setRemoteFeed([ ...remoteFeed, newFeed]);
     }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [participantCount]);
 
   async function setUpMeet() {
