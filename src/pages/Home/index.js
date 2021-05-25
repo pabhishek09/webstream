@@ -28,8 +28,10 @@ function Home() {
   }
 
   return (
-    <div>
-      <section className="hero is-primary">
+    <div className='mt-8 ml-4'>
+      <h1>webstream</h1>
+      <button onClick={createMeet}>Create room</button>
+      {/* <section className="hero is-primary">
         <div className="hero-body is-align-items-center align-center">
           <p className="title is-size-2 has-text-weight-medium">
             web-storm
@@ -39,7 +41,7 @@ function Home() {
           </p>
           <button className="button is-white" onClick={createMeet}> Start meet</button>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

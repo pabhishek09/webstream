@@ -1,13 +1,34 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* ./src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: "Sans Regular";
+    font-weight: 400;
+    src: url(./assets/fonts/SourceSansPro-Regular.ttf) format("ttf");
+  }
+  @font-face {
+    font-family: "Sans Bold";
+    font-weight: 400;
+    src: url(./assets/fonts/SourceSansPro-Bold.ttf) format("ttf");
+  }
+  @font-face {
+    font-family: "Sans Semi Bold";
+    font-weight: 400;
+    src: url(./assets/fonts/SourceSansPro-SemiBold.ttf) format("ttf");
+  }
+
+  h1, h2 {
+    font-family: "Sans Bold";
+  }
+
+  h3, h4, button {
+    font-family: "Sans Semi Bold";
+  }
+  h5, h6, p, span, a {
+    font-family: "Sans Regular";
+  }
 }
