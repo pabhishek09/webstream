@@ -25,10 +25,9 @@ function Home() {
   }
 
   return (
-    <div>
-      <p className="text-white font-sansblack text-5xl">webstream</p>
-      <p className="text-white text-5xl">webstream</p>
-      <button onClick={createMeet}>
+    <div className="ml-%0.2 xs:pt-%0.2 sm:pt-%0.2 md:pt-%0.3">
+      <h1 className="text-white">webstream</h1>
+      <button className="btn" onClick={createMeet}>
         Create room
       </button>
     </div>

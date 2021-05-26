@@ -12,6 +12,13 @@ module.exports = {
           '2xl': '6rem',
         },
       },
+      margin: {
+        '%0.2': '20%',
+      },
+      padding: {
+        '%0.2': '20%',
+        '%0.3': '30%',
+      },
       colors: {
         purple: {
           DEFAULT: '#5C0FDA',

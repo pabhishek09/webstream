@@ -5,28 +5,65 @@
 @tailwind utilities;
 
 @layer base {
+
+  /* Fonts */
   @font-face {
     font-family: "Sans Regular";
-    src: url(./assets/fonts/SourceSansPro-Regular.ttf) format("ttf");
+    src: url(./assets/fonts/SourceSansPro-Regular.ttf) format("truetype");
   }
   @font-face {
     font-family: "Sans Semi Bold";
-    src: url(./assets/fonts/SourceSansPro-SemiBold.ttf) format("ttf");
+    src: url(./assets/fonts/SourceSansPro-SemiBold.ttf) format("truetype");
   }
   @font-face {
     font-family: "Sans Bold";
-    src: url(./assets/fonts/SourceSansPro-Bold.ttf) format("ttf");
+    src: url(./assets/fonts/SourceSansPro-Bold.ttf) format("truetype");
   }
   @font-face {
     font-family: "Sans Black";
-    src: url(./assets/fonts/SourceSansPro-Black.ttf) format("ttf");
+    src: url(./assets/fonts/SourceSansPro-Black.ttf) format("truetype");
+  }
+
+  /* Typography */
+  h1 {
+    @apply md:text-5xl lg:text-6xl;
+    font-family: "Sans Black";
+  }
+  h2 {
+    @apply text-5xl;
+    font-family: "Sans Black";
+  }
+  h3 {
+    @apply text-4xl;
+    font-family: "Sans Bold";
+  }
+  h4 {
+    @apply text-3xl;
+    font-family: "Sans Bold";
+  }
+  h5 {
+    @apply text-2xl;
+    font-family: "Sans Semi Bold";
+  }
+  h6 {
+    @apply text-xl;
+    font-family: "Sans Semi Bold";
+  }
+  p {
+    @apply text-lg;
+    font-family: "Sans Regular";
+  }
+  span {
+    @apply text-base;
+    font-family: "Sans Regular";
   }
 }
 
-.text-white.font-sansblack {
-  font-family: "Sans Black";
-}
+@layer components {
 
-.text-white {
-  font-family: "Sans Regular";
+  /* Buttons */
+  .btn {
+    @apply px-4 py-1.5 text-center bg-transparent border-2 border-white rounded md:rounded-md lg:rounded-lg text-white font-sanssemibold;
+  }
+  
 }
