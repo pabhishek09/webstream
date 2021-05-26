@@ -2,9 +2,6 @@ import React from 'react';
 import getSocket from '../../socket';
 import { useHistory } from 'react-router-dom';
 
-import './style.css';
-
-
 function Home() {
 
   const history = useHistory();
@@ -28,18 +25,11 @@ function Home() {
   }
 
   return (
-    <div>
-      <section className="hero is-primary">
-        <div className="hero-body is-align-items-center align-center">
-          <p className="title is-size-2 has-text-weight-medium">
-            web-storm
-          </p>
-          <p className="subtitle has-text-weight-medium">
-            Video conferencing prototype built with webRTC
-          </p>
-          <button className="button is-white" onClick={createMeet}> Start meet</button>
-        </div>
-      </section>
+    <div className="ml-%0.2 xs:pt-%0.2 sm:pt-%0.2 md:pt-%0.3">
+      <h1 className="text-white">webstream</h1>
+      <button className="btn" onClick={createMeet}>
+        Create room
+      </button>
     </div>
   );
 }

@@ -7,17 +7,14 @@ import {
 import Home from './pages/Home';
 import Game from './pages/Game';
 import Meet from './pages/Meet';
-import Navbar from './components/Navbar';
-import 'bulma/css/bulma.min.css';
 import './App.css';
 
 function App() {
 
   return (
-    <div className="app-container">
+    <div>
       <Router>
-        <Navbar />
-        <div className="container page-layout">
+        <div className="container max-w-full min-h-screen bg-purple m-0">
           <Switch>
             <Route path="/game">
               <Game />

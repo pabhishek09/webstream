@@ -256,7 +256,7 @@ function Meet() {
         <button className="button is-warning" onClick={toggleVideo}>Toggle video</button>
         <button className="button is-warning" onClick={toggleAudio}>Toggle audio</button>
       </div>
-      <div id="video-tiles" className="is-flex is-justify-content-center is-align-content-center is-align-items-center">
+      <div id="video-tiles" className="flex">
         <Feed isHost='true' idAttr='user-video' />
         <>{remoteFeed}</>
       </div>
