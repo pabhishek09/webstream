@@ -255,7 +255,7 @@ function Meet() {
     
   return (
     <div>
-      <h3>{hostName}'s meeting</h3>
+      <h3>{hostName}'s meeting, Participant {participantName}</h3>
       <div className="buttons is-flex is-justify-content-center is-align-content-center is-align-items-center">
         <button className="button is-warning" onClick={toggleVideo}>Toggle video</button>
         <button className="button is-warning" onClick={toggleAudio}>Toggle audio</button>
