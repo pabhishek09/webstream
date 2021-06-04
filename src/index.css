@@ -65,5 +65,9 @@
   .btn {
     @apply px-4 py-1.5 text-center bg-transparent border-2 border-white rounded md:rounded-md lg:rounded-lg text-white font-sanssemibold;
   }
+
+  .input-text {
+    @apply px-4 py-1.5 bg-transparent border-2 border-white rounded md:rounded-md lg:rounded-lg text-white font-sanssemibold;
+  }
   
 }

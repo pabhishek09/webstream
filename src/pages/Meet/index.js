@@ -40,7 +40,9 @@ function Meet() {
 
   const participants = [];
   const [ participantCount, setParticipantCount ] = useState(0);
-  const [ remoteFeed, setRemoteFeed ] = useState([])
+  const [ remoteFeed, setRemoteFeed ] = useState([]);
+  const [ participantName, setParticipantName ] = useState('');
+  const [ hostName, setHostName ] = useState('');
 
   useEffect(() => {
     setUpMeet()
@@ -60,7 +62,9 @@ function Meet() {
     console.log(':: setUpMeet ::');
     await validateMeet();
     socket = await getSocket();
-    isHost = socket.id === meetDetails.host;
+    isHost = socket.id === meetDetails.host.id;
+    setHostName(meetDetails.host.name);
+    if (isHost) setParticipantName(meetDetails.host.name);
     console.log(`:: isHost ::  ${isHost}`)
     initiateMeetSignalling();
   }
@@ -68,9 +72,8 @@ function Meet() {
   async function validateMeet()  {
     if(!id) history.push('/');
     else {
-      const meet = await getMeet(id);
-      if (!meet.data) return history.push('/');
-      meetDetails = meet.data;
+      meetDetails = await getMeet(id);
+      if (!meetDetails) return history.push('/');
     }
   }
 
@@ -252,6 +255,7 @@ function Meet() {
     
   return (
     <div>
+      <h3>{hostName}'s meeting</h3>
       <div className="buttons is-flex is-justify-content-center is-align-content-center is-align-items-center">
         <button className="button is-warning" onClick={toggleVideo}>Toggle video</button>
         <button className="button is-warning" onClick={toggleAudio}>Toggle audio</button>
