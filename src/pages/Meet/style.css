@@ -1,0 +1,14 @@
+.tile {
+  margin: 0  16px;
+}
+.tile .video  {
+  height: 384px;
+  width: 384px;
+  overflow: hidden;
+}
+.tile.user  {
+  border: 1px solid black;
+}
+.tile.host  {
+  border-top: 2px solid yellow;
+}
