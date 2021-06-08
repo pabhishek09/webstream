@@ -5,9 +5,10 @@ import { useHistory } from 'react-router-dom';
 function Home() {
 
   const history = useHistory();
-  const [ name, setName ] = useState('');
+  const [name, setName] = useState('');
 
-  async function createMeet() {
+  async function createMeet(event) {
+    event.preventDefault();
     console.log(':: createMeet ::');
     const { _id } = await createRoom();
     history.push(`/meet/${_id}`);
@@ -15,30 +16,43 @@ function Home() {
 
   async function createRoom() {
     console.log(':: createRoom ::');
-    const socket =  await getSocket();
+    const socket = await getSocket();
     return fetch(`${process.env.REACT_APP_API_BASE_URL}api/meet`, {
       method: 'POST',
-      body: JSON.stringify({ 
-      host: {
-        name,
-        id: socket.id
+      body: JSON.stringify({
+        host: {
+          name,
+          id: socket.id
+        }
+      }),
+      headers: {
+        'Content-Type': 'application/json',
       }
-    }),
-    headers: {
-      'Content-Type': 'application/json',
-    }
     }).then((res) => res.json());
   }
 
   return (
-    <div className="ml-%0.2 xs:pt-%0.2 sm:pt-%0.2 md:pt-%0.3">
-      <h1 className="text-white">webstream</h1>
-      <div>
-        <input type="text" className="input-text mr-2" placeholder="Enter your name" value={name} onChange={(event) => setName(event.target.value)}/>
-        <button className="btn" onClick={createMeet} disabled={!name}>
+    <div className='flex flex-col justify-center items-center h-screen'>
+      <h1 className='text-white text-3xl m-5'>WEBSTREAM</h1>
+      <form className='flex flex-col gap-4 w-full md:w-3/12' onSubmit={createMeet}>
+        <input
+          type='text'
+          className='input-text'
+          value={name}
+          placeholder='Enter your name'
+          onChange={(event) => {
+            event.preventDefault();
+            setName(event.target.value);
+          }}
+        />
+        <button
+          type='submit'
+          className='btn'
+          disabled={!name}
+        >
           Create room
         </button>
-      </div>
+      </form>
     </div>
   );
 }

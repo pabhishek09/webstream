@@ -2,8 +2,8 @@
   margin: 0  16px;
 }
 .feed-container .feed-content  {
-  height: 384px;
-  width: 384px;
+  height: 100px;
+  width: auto;
   overflow: hidden;
 }
 .feed-container .feed-content.user-feed  {

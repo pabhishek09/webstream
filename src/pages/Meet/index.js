@@ -8,16 +8,16 @@ import './style.css';
 function Meet() {
 
   let socket;
-  const { id }  = useParams();
+  const { id } = useParams();
   const history = useHistory();
 
-  const [ participantName, setParticipantName ] = useState('');
-  const [ isHost, setIsHost ] = useState(null);
-  const [ meetDetails, setMeetDetails ] = useState(null);
+  const [participantName, setParticipantName] = useState('');
+  const [isHost, setIsHost] = useState(null);
+  const [meetDetails, setMeetDetails] = useState(null);
 
   useEffect(() => {
     setUpMeet()
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ function Meet() {
 
   async function setUpMeet() {
     console.log(':: setUpMeet ::');
-    if(!id) history.push('/');
+    if (!id) history.push('/');
     else {
       const meetResponse = await getMeet(id);
       if (!meetResponse) return history.push('/');
@@ -38,14 +38,18 @@ function Meet() {
 
   async function getMeet(id) {
     return fetch(`${process.env.REACT_APP_API_BASE_URL}api/meet?id=${id}`)
-    .then((data) => data.json());
+      .then((data) => data.json());
   }
 
   return (
-    <div>
-      {meetDetails && <h3 className="text-white">{ meetDetails?.host?.name}'s meeting</h3>}
-      {isHost !== null && !participantName && <Launch onLaunch={(name) => setParticipantName(name)}/>} 
-      {isHost !== null && participantName && <VideoTab isHost={isHost} meetId={meetDetails?._id}/>} 
+    <div className='flex flex-col h-screen py-5'>
+      <div className='text-center'>
+        {meetDetails && <h3 className="text-white mb-5">{meetDetails?.host?.name}'s meeting</h3>}
+      </div>
+      <div className='flex flex-grow'>
+        {isHost !== null && !participantName && <Launch onLaunch={(name) => setParticipantName(name)} />}
+        {isHost !== null && participantName && <VideoTab isHost={isHost} meetId={meetDetails?._id} />}
+      </div>
     </div>
   )
 }

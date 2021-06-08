@@ -211,14 +211,21 @@ function VideoTab(props) {
     }
   }
 
-  return <div>
-    <div className="buttons is-flex is-justify-content-center is-align-content-center is-align-items-center">
+  return <div className='flex flex-col flex-grow'>
+    {/* <div className="buttons is-flex is-justify-content-center is-align-content-center is-align-items-center">
       <button className="button is-warning" onClick={toggleVideo}>Toggle video</button>
       <button className="button is-warning" onClick={toggleAudio}>Toggle audio</button>
-    </div>
-    <div id="video-tiles" className="flex">
+    </div> */}
+    <div id="video-tiles" className="flex flex-grow flex-wrap justify-center content-center md:content-end gap-4">
       <Feed isHost='true' idAttr='user-video' />
       <>{remoteFeed}</>
+    </div>
+    <div className='flex flex-wrap justify-center content-center flex-grow-0 gap-5 mt-5'>
+      <button className='btn' onClick={toggleVideo}>Toggle video</button>
+      <button className='btn' onClick={toggleAudio}>Toggle audio</button>
+      <button className='btn'>Disconnect call</button>
+      <button className='btn'>Share screen</button>
+      <button className='btn'>Chatbox</button>
     </div>
   </div>
 }
