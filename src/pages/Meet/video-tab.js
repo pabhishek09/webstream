@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import getSocket from '../../socket';
-import Feed from '../../components/Feed';
+import Tile from './tile';
 import iceServers from './iceServers';
 
 function VideoTab(props) {
@@ -33,7 +33,7 @@ function VideoTab(props) {
   useEffect(() => {
     if (participantCount > 0) {
       const index = participantCount - 1;
-      const newFeed = <Feed isHost='false' key={`remote-feed-${index}`} idAttr={`remote-video-${index}`}/>;
+      const newFeed = <Tile isHost={isHost} key={`remote-feed-${index}`} idAttr={`remote-video-${index}`}/>;
       setRemoteFeed([ ...remoteFeed, newFeed]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -217,7 +217,7 @@ function VideoTab(props) {
       <button className="button is-warning" onClick={toggleAudio}>Toggle audio</button>
     </div>
     <div id="video-tiles" className="flex">
-      <Feed isHost='true' idAttr='user-video' />
+      <Tile isHost={isHost} idAttr='user-video'/>
       <>{remoteFeed}</>
     </div>
   </div>
