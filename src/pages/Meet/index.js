@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState, useRef } from 'react';
 import VideoTab from './video-tab';
 import Launch from './launch';
 import getSocket from '../../socket';
@@ -9,7 +10,7 @@ import './style.css';
 
 function Meet() {
 
-  let socket;
+  let socket = useRef(null);
   const { id }  = useParams();
   const history = useHistory();
 
@@ -21,8 +22,7 @@ function Meet() {
   const host = useSelector(state => state.connection.host);
 
   useEffect(() => {
-    setUpMeet()
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+    setUpMeet();
   }, []);
 
   useEffect(() => {
@@ -36,19 +36,19 @@ function Meet() {
       dispatch(setConnectionState({ attr: 'meetingId', value: id}));
       const meetResponse = await getMeet(id);
       if (!meetResponse) return history.push('/');
-      socket = await getSocket();
+      socket.current = await getSocket();
       const hostDetails = meetResponse.host;
       console.log({hostDetails});
       dispatch(setConnectionState({ attr: 'host', value: { id: hostDetails.id, name: hostDetails.name }}));
-      if (socket.id === hostDetails.id) dispatch(setConnectionState({ attr: 'participant', value: { id: hostDetails.id, name: hostDetails.name, isHost: true }}));
+      if (socket.current.id === hostDetails.id) dispatch(setConnectionState({ attr: 'participant', value: { id: hostDetails.id, name: hostDetails.name, isHost: true }}));
       setMeetDetails(meetResponse);
-      setIsHost(socket.id === meetResponse.host.id);
+      setIsHost(socket.current.id === meetResponse.host.id);
     }
   }
 
   function setParticipantDetails(name) {
     setParticipantName(name);
-    dispatch(setConnectionState({ attr: 'participant', value: { id: socket.id, name, isHost: false }}));
+    dispatch(setConnectionState({ attr: 'participant', value: { id: socket.current.id, name, isHost: false }}));
   }
 
   async function getMeet(id) {
@@ -58,7 +58,6 @@ function Meet() {
 
   return (
     <div>
-      {participantName}
       {meetDetails && <h3 className="text-white">{ meetDetails?.host?.name}'s meeting</h3>}
       {isHost !== null && !participantName && <Launch onLaunch={(name) => setParticipantDetails(name)}/>} 
       {isHost !== null && participantName && <VideoTab isHost={isHost} meetId={meetDetails?._id}/>} 
