@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector,  useDispatch } from 'react-redux';
 import getSocket from '../../socket';
 import Tile from './tile';
 import iceServers from './iceServers';
+import { addParticipant } from '../../store/participants';
 
-function VideoTab(props) {
-  const { isHost, meetId } = props; 
+function VideoTab() {
+
+  const dispatch = useDispatch();
+  const isHost =  useSelector((state) => state.connection.participant.isHost);
+  const participantName = useSelector((state) => state.connection.participant.name);
+  const meetId = useSelector((state) => state.connection.meetingId);
+
   let peerConnections = [];
   let localMediaStream;
   const pcConfig = {
@@ -16,13 +23,19 @@ function VideoTab(props) {
   };
 
   const participants = [];
-  const [ participantCount, setParticipantCount ] = useState(0);
+
+  const hostId = useSelector((state) => state.connection.host.id);
+  const allParticipants = useSelector((state) => {
+    console.log(state);
+    return state.participants;
+  });
+
+  console.log(allParticipants);
+  // const [ participantCount, setParticipantCount ] = useState(0);
   const [ remoteFeed, setRemoteFeed ] = useState([]);
   let socket;
   
-
   useEffect(() => {
-    console.log('Use Effect');
     getSocket().then((socketCn) => {
       socket = socketCn;
       initiateMeetSignalling();
@@ -30,19 +43,19 @@ function VideoTab(props) {
      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (participantCount > 0) {
-      const index = participantCount - 1;
-      const newFeed = <Tile isHost={isHost} key={`remote-feed-${index}`} idAttr={`remote-video-${index}`}/>;
-      setRemoteFeed([ ...remoteFeed, newFeed]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participantCount]);
+  // useEffect(() => {
+  //   if (participantCount > 0) {
+  //     const index = participantCount - 1;
+  //     const newFeed = <Tile isHost={isHost} key={`remote-feed-${index}`} idAttr={`remote-video-${index}`}/>;
+  //     setRemoteFeed([ ...remoteFeed, newFeed]);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [participantCount]);
 
-  function initiateMeetSignalling() {
+  const initiateMeetSignalling = () => {
     console.log(':: initiateMeetSignalling ::');
     console.log({isHost, meetId});
-    isHost ? socket.emit('start-meet', { id: meetId }) : socket.emit('join-meet', { id: meetId });
+    isHost ? socket.emit('start-meet', { id: meetId }) : socket.emit('join-meet', { id: meetId, name: participantName });
     socket.on('start-meet', setUpUserMedia);
     socket.on('join-meet', onNewParticipant);
     socket.on('sdp_request', onSdpRequest);
@@ -50,20 +63,42 @@ function VideoTab(props) {
     socket.on('new_ice_candidate', onNewIceCanditate)
   }
 
-  async function onNewParticipant({ joinee_id }) {
+  const addNewParticipant = (id, name) => {
+    console.log(':: addNewParticipant ::');
+    // const allParticipants = dispatch(getParticipants());
+    console.log(allParticipants);
+    const pcIndex = allParticipants.length;
+    console.log({
+      allParticipants,
+      pcIndex,
+    });
+    const participant = {
+      id,
+      name,
+      isHost: id === hostId,
+      pcIndex,
+    };
+    dispatch(addParticipant(participant));
+    console.log({allParticipants, });
+    const newFeed = <Tile isHost={isHost} key={id} idAttr={`remote-video-${pcIndex}`}/>;
+    setRemoteFeed([ ...remoteFeed, newFeed]);
+    return pcIndex;
+  }
+
+  const onNewParticipant = async ({ joinee_id, joinee_name }) => {
+    const pcIndex = addNewParticipant(joinee_id, joinee_name);
     participants.push(joinee_id);
-    setParticipantCount(participants.length);
-    console.log(':: onNewParticipant ::', {joinee_id, participants, participantCount});
-    const newParticipantIndex = participants.length-1;
-    await createPeerConnection(newParticipantIndex);
-    streamLocalMedia(newParticipantIndex);
+    // setParticipantCount(participants.length);
+    console.log(':: onNewParticipant ::', {joinee_id, participants, pcIndex});
+    await createPeerConnection(pcIndex);
+    streamLocalMedia(pcIndex);
   }
 
   async function onSdpRequest(params) {
     console.log(':: onSdpRequest ::', { request_to: params.request_to, request_by: params.request_by});
+    const pcIndex = addNewParticipant(params.request_by, params.request_by_name);
     participants.push(params.request_by);
-    setParticipantCount(participants.length);
-    const pcIndex = participants.length - 1;
+    // setParticipantCount(participants.length);
     await createPeerConnection(pcIndex);
     peerConnections[pcIndex]
       .setRemoteDescription(new RTCSessionDescription(params.sdp))
@@ -81,6 +116,7 @@ function VideoTab(props) {
   }
 
   function streamLocalMedia(pcIndex)  {
+    console.log(`:: streamLocalMedia ::  for ${pcIndex}`);
     localMediaStream.getTracks()
     .forEach(track => peerConnections[pcIndex].addTrack(track, localMediaStream));
   }
@@ -105,6 +141,7 @@ function VideoTab(props) {
   } 
 
   async function createPeerConnection(pcIndex) {
+    console.log(`:: createPeerConnection ::  for ${pcIndex}`);
     try {
       const peerConnection = new RTCPeerConnection(pcConfig);
       console.info(`:: createPeerConnection with index ${pcIndex} ::`);
@@ -144,7 +181,8 @@ function VideoTab(props) {
     .then((offer) => peerConnections[pcIndex].setLocalDescription(offer))
     .then(() => {
       socket.emit('sdp_request', {
-        request_by: socket.id, 
+        request_by: socket.id,
+        request_by_name: participantName, 
         request_to: participants[pcIndex],
         sdp: peerConnections[pcIndex].localDescription,  
       });
