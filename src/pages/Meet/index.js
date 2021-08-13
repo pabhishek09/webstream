@@ -9,25 +9,19 @@ import './style.css';
 
 function Meet() {
 
-  let socket;
   const { id }  = useParams();
   const history = useHistory();
 
-  const [ participantName, setParticipantName ] = useState('');
-  const [ isHost, setIsHost ] = useState(null);
-  const [ meetDetails, setMeetDetails ] = useState(null);
+  const [ socketId, setSocketId ] = useState(null);
 
   const dispatch = useDispatch();
-  const host = useSelector(state => state.connection.host);
+  const hostName = useSelector((state) => state.connection.host.name);
+  const participantName = useSelector((state) => state.connection.participant.name);
 
   useEffect(() => {
     setUpMeet()
      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (isHost) setParticipantName(meetDetails.host.name);
-  }, [isHost]);
 
   async function setUpMeet() {
     console.log(':: setUpMeet ::');
@@ -35,20 +29,20 @@ function Meet() {
     else {
       dispatch(setConnectionState({ attr: 'meetingId', value: id}));
       const meetResponse = await getMeet(id);
+      console.log({meetResponse});
       if (!meetResponse) return history.push('/');
-      socket = await getSocket();
+      const socket = await getSocket();
+      setSocketId(socket.id);
       const hostDetails = meetResponse.host;
-      console.log({hostDetails});
       dispatch(setConnectionState({ attr: 'host', value: { id: hostDetails.id, name: hostDetails.name }}));
-      if (socket.id === hostDetails.id) dispatch(setConnectionState({ attr: 'participant', value: { id: hostDetails.id, name: hostDetails.name, isHost: true }}));
-      setMeetDetails(meetResponse);
-      setIsHost(socket.id === meetResponse.host.id);
+      if (socket.id === hostDetails.id) {
+        dispatch(setConnectionState({ attr: 'participant', value: { id: hostDetails.id, name: hostDetails.name, isHost: true }}));
+      }
     }
   }
 
   function setParticipantDetails(name) {
-    setParticipantName(name);
-    dispatch(setConnectionState({ attr: 'participant', value: { id: socket.id, name, isHost: false }}));
+    dispatch(setConnectionState({ attr: 'participant', value: { id: socketId, name, isHost: false }}));
   }
 
   async function getMeet(id) {
@@ -58,10 +52,9 @@ function Meet() {
 
   return (
     <div>
-      {participantName}
-      {meetDetails && <h3 className="text-white">{ meetDetails?.host?.name}'s meeting</h3>}
-      {isHost !== null && !participantName && <Launch onLaunch={(name) => setParticipantDetails(name)}/>} 
-      {isHost !== null && participantName && <VideoTab isHost={isHost} meetId={meetDetails?._id}/>} 
+      {hostName && <h3 className="text-white">{ hostName}'s meeting</h3>}
+      {!participantName && <Launch onLaunch={(name) => setParticipantDetails(name)}/>} 
+      {participantName && <VideoTab/>} 
     </div>
   )
 }
