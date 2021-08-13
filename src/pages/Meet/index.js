@@ -29,6 +29,7 @@ function Meet() {
     else {
       dispatch(setConnectionState({ attr: 'meetingId', value: id}));
       const meetResponse = await getMeet(id);
+      console.log({meetResponse});
       if (!meetResponse) return history.push('/');
       const socket = await getSocket();
       setSocketId(socket.id);

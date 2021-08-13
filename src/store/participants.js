@@ -6,8 +6,6 @@ export const participantsSlice = createSlice({
   reducers: {
     addParticipant: (state, action) => [ ...state, action.payload ],
     removeParticipant: (state, action) => {
-      const indexOfParticipant = state.participants.indexOf(action.payload.id);
-      state.splice(indexOfParticipant, 1);
     },
   }
 });
