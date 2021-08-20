@@ -1,0 +1,9 @@
+.video-icon {
+  height: 48px;
+  width: 48px;
+  cursor: pointer;
+  transition: width .5 linear;
+}
+.video-icon:hover {
+  width: 72px;
+}

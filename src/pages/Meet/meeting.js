@@ -1,21 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector,  useDispatch } from 'react-redux';
-import getSocket from '../../socket';
-import Tile from './tile';
+import { getSocket, disconnect } from '../../socket';
+import Tile from '../../components/Tile';
+import VideOptions from '../../components/VideoOptions';
 import iceServers from './iceServers';
 import { addParticipant } from '../../store/participants';
+import { useHistory } from 'react-router-dom';
 
-function VideoTab() {
+function Meeting() {
+
+  const history = useHistory();
 
   const dispatch = useDispatch();
   const isHost =  useSelector((state) => state.connection.participant.isHost);
   const participantName = useSelector((state) => state.connection.participant.name);
   const meetId = useSelector((state) => state.connection.meetingId);
+  const hostName = useSelector((state) => state.connection.host.name);
   const hostId = useSelector((state) => state.connection.host.id);
   const allParticipants = useSelector((state) => state.participants);
 
   const [ remoteFeed, setRemoteFeed ] = useState([]);
   const [ peerConnections, setPeerConnections ] = useState([]);
+  const [ audio, setAudio ] = useState(false);
+  const [ video, setVideo ] = useState(true);
+  const [ showMsgTab, setShowMsgTab ] = useState(false);
+
+  const isAudioEffectFirstRun = useRef(true);
+  const isVideoEffectFirstRun = useRef(true);
 
   useEffect(() => {
     getSocket().then((socketCn) => {
@@ -23,16 +34,22 @@ function VideoTab() {
       socket = socketCn;
       initiateMeetSignalling();
     });
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+    };
+
   }, []);
 
   useEffect(() => {
     if (allParticipants.length > 0 ) {
       const pcIndex = allParticipants.length - 1;
       const participant = allParticipants[pcIndex];
-      const { id } = participant;
+      const { id, name } = participant;
       const newFeed = <Tile 
-      isHost={id === hostId} 
+      isHost={id === hostId}
+      name={name} 
       key={id} 
       idAttr={`remote-video-${pcIndex}`}
     />;
@@ -47,12 +64,32 @@ function VideoTab() {
       getSocket().then((socketCn) => {
         socketCn.removeAllListeners('new_ice_candidate');
         socketCn.removeAllListeners('sdp_response');
+        socketCn.removeAllListeners('close-connection');
         socketCn.on('new_ice_candidate', (event) => onNewIceCanditate(event, peerConnections, allParticipants));
         socketCn.on('sdp_response', (event) => onSdpResponse(event, peerConnections, allParticipants));
+        socketCn.on('close-connection', (event) => onCloseConnection(event, peerConnections, allParticipants));
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [peerConnections]);
+
+  useEffect(() => {
+    console.log('video useEffect', isVideoEffectFirstRun);
+    if (isVideoEffectFirstRun.current) {
+      console.log('first step');
+      isVideoEffectFirstRun.current = false;
+    } else {
+      console.log('second step');
+      if (localMediaStream) {
+        console.log('localmediastream is defined');
+        const videoTracks = localMediaStream.getVideoTracks();
+        if (videoTracks.length) {
+          videoTracks[0].enabled = !videoTracks[0].enabled;
+        }
+        setVideo(!video);
+      } 
+    }
+  }, [video]);
 
   let localMediaStream;
   let socket;
@@ -61,7 +98,11 @@ function VideoTab() {
   };
   const constraints = {
     audio: false,
-    video: true, // Specify video resolution per requirements
+    video: { 
+      facingMode: 'user',
+      width: 340,
+      height: 200,  
+    },
   };
 
   const initiateMeetSignalling = () => {
@@ -227,12 +268,7 @@ function VideoTab() {
   }
 
   function toggleVideo() {
-    if (localMediaStream) {
-      const videoTracks = localMediaStream.getVideoTracks();
-      if (videoTracks.length) {
-        videoTracks[0].enabled = !videoTracks[0].enabled;
-      }
-    } 
+
   }
 
   function toggleAudio() {
@@ -244,6 +280,43 @@ function VideoTab() {
     }
   }
 
+  function endCall(onBrowserClose) {
+    console.log(':: end-call ::')
+    getSocket().then((socketCn) => {
+      console.log('firing close connection event');
+      socketCn.emit('close-connection', {
+       id: socketCn.id,
+       to: meetId,
+      });
+      if (onBrowserClose) {
+        disconnect();
+      } else {
+        history.push('/home');
+      }
+    });
+  }
+
+  function onCloseConnection(event, peerConnections, participants) {
+    const pcIndex = indexOfConnection(participants, event.id);
+    const videoEl = document.getElementById(`remote-video-${pcIndex}`);
+    if (videoEl) {
+      videoEl.srcObject.getTracks().forEach(track => track.stop());
+      videoEl.removeAttribute('src');
+      videoEl.removeAttribute('srcObject');
+    }
+    closePeerConnection(peerConnections[pcIndex]);
+    const tileEl = document.getElementById(`tile-remote-video-${pcIndex}`);
+    if (tileEl) tileEl.remove();
+  }
+
+  function onBeforeUnload(event) {
+    console.log(':: onBeforeUnload ::');
+    event.preventDefault();
+    endCall(true);
+    event.returnValue = 'Meeting ended, please join again';
+    return 'Meeting ended, please join again';
+  }
+
   function indexOfConnection(participants, id) {
     console.log('::indexOfConnections::', participants);
     for (let index = 0; index < participants.length; index++) {
@@ -252,16 +325,39 @@ function VideoTab() {
     return -1;
   }
 
-  return <div>
-    <div className="buttons is-flex is-justify-content-center is-align-content-center is-align-items-center">
-      <button className="button is-warning" onClick={toggleVideo}>Toggle Video</button>
-      <button className="button is-warning" onClick={toggleAudio}>Toggle Audio</button>
+  function closePeerConnection(peerConnection) {
+    peerConnection.ontrack = null;
+    peerConnection.onremovetrack = null;
+    peerConnection.onremovestream = null;
+    peerConnection.onicecandidate = null;
+    peerConnection.oniceconnectionstatechange = null;
+    peerConnection.onsignalingstatechange = null;
+    peerConnection.onicegatheringstatechange = null;
+    peerConnection.onnegotiationneeded = null;
+    peerConnection.close();
+    peerConnection = null;
+  }
+
+  return (
+    <div className="video-tab min-h-screen flex flex-col justify-between items-center" >
+      <div className="pt-8">
+      {hostName && <h3 className="text-white">{ hostName}'s meeting</h3>}
+      </div>
+      <div id="video-tiles" className="flex flex-col lg:flex-row">
+        <Tile isHost={isHost} idAttr='user-video' name={participantName}/>
+        <>{remoteFeed}</>
+      </div>
+      <VideOptions
+        audio={audio}
+        video={video}
+        showMsgTab={showMsgTab}
+        onToggleAudio={() => setAudio(!audio)}
+        onToggleVideo={() => setVideo(!video)}
+        onToggleMsgTab={() => setShowMsgTab(!showMsgTab)}
+        onEndCall={() => endCall(false)}
+      />
     </div>
-    <div id="video-tiles" className="flex">
-      <Tile isHost={isHost} idAttr='user-video'/>
-      <>{remoteFeed}</>
-    </div>
-  </div>
+  )
 }
 
-export default VideoTab;
+export default Meeting;
