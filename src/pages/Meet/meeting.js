@@ -21,7 +21,7 @@ function Meeting() {
 
   const [ remoteFeed, setRemoteFeed ] = useState([]);
   const [ peerConnections, setPeerConnections ] = useState([]);
-  const [ audio, setAudio ] = useState(false);
+  const [ audio, setAudio ] = useState(true);
   const [ video, setVideo ] = useState(true);
   const [ showMsgTab, setShowMsgTab ] = useState(false);
 
@@ -34,12 +34,6 @@ function Meeting() {
       socket = socketCn;
       initiateMeetSignalling();
     });
-
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload);
-    };
-
   }, []);
 
   useEffect(() => {
@@ -64,40 +58,41 @@ function Meeting() {
       getSocket().then((socketCn) => {
         socketCn.removeAllListeners('new_ice_candidate');
         socketCn.removeAllListeners('sdp_response');
-        socketCn.removeAllListeners('close-connection');
+        // socketCn.removeAllListeners('close-connection');
+        socketCn.removeAllListeners('end-meeting');
         socketCn.on('new_ice_candidate', (event) => onNewIceCanditate(event, peerConnections, allParticipants));
         socketCn.on('sdp_response', (event) => onSdpResponse(event, peerConnections, allParticipants));
-        socketCn.on('close-connection', (event) => onCloseConnection(event, peerConnections, allParticipants));
+        // socketCn.on('close-connection', (event) => onCloseConnection(event, peerConnections, allParticipants));
+        socketCn.on('end-meeting', () => onEndMeeting(peerConnections));
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [peerConnections]);
 
   useEffect(() => {
-    console.log('video useEffect', isVideoEffectFirstRun);
     if (isVideoEffectFirstRun.current) {
-      console.log('first step');
       isVideoEffectFirstRun.current = false;
     } else {
-      console.log('second step');
-      if (localMediaStream) {
-        console.log('localmediastream is defined');
-        const videoTracks = localMediaStream.getVideoTracks();
-        if (videoTracks.length) {
-          videoTracks[0].enabled = !videoTracks[0].enabled;
-        }
-        setVideo(!video);
-      } 
+      setVideoStream(video);
     }
   }, [video]);
 
+  useEffect(() => {
+    if (isAudioEffectFirstRun.current) {
+      isAudioEffectFirstRun.current = false;
+    } else {
+      setAudioStream(audio);
+    }
+  }, [audio]);
+
   let localMediaStream;
+
   let socket;
   const pcConfig = {
     iceServers,
   };
   const constraints = {
-    audio: false,
+    audio: true,
     video: { 
       facingMode: 'user',
       width: 340,
@@ -157,9 +152,9 @@ function Meeting() {
       peerConnection.onicecandidate = (event) => handleIceCanditate(pcIndex, event);
       peerConnection.ontrack = (event) => handleTrack(pcIndex, event);
       peerConnection.onnegotiationneeded = (event) => handleNegotiationNeeded(peerConnection, participant);
-      peerConnection.oniceconnectionstatechange = (event) => handleICEConnectionStateChange(pcIndex, event);
-      peerConnection.onicegatheringstatechange = (event) => handleICEGatheringStateChange(pcIndex, event);
-      peerConnection.onsignalingstatechange = (event) => handleSignalingStateChange(pcIndex, event);
+      peerConnection.oniceconnectionstatechange = (event) => handleICEConnectionStateChange(peerConnection, pcIndex);
+      // peerConnection.onicegatheringstatechange = (event) => handleICEGatheringStateChange(pcIndex, event);
+      // peerConnection.onsignalingstatechange = (event) => handleSignalingStateChange(pcIndex, event);
       setPeerConnections([...peerConnections, peerConnection]);
     } catch (err) {
       console.error('Error in creating peer connection', err);
@@ -224,16 +219,29 @@ function Meeting() {
     })
   }
 
-  function handleICEConnectionStateChange(pcIndex, event) {
-    console.log(`:: handleICEConnectionStateChangeEvent for index ${pcIndex}::`);
+  function handleICEConnectionStateChange(peerConnection, pcIndex) {
+    console.log(`:: handleICEConnectionStateChangeEvent for index::`, pcIndex);
+    console.log(peerConnection);
+    const { iceConnectionState } = peerConnection;
+    console.log('connnection state', iceConnectionState);
+    if (iceConnectionState === 'disconnected' 
+      || iceConnectionState === 'failed' 
+      || iceConnectionState === 'closed') {
+        closeVideoCall(peerConnection, pcIndex);
+      }
   }
 
-  function handleICEGatheringStateChange(pcIndex, event) {
-    console.log(`:: handleICEGatheringStateChangeEvent for index ${pcIndex}::`);
-  }
-
-  function handleSignalingStateChange(pcIndex, event) {
-    console.log(`::  for index ${pcIndex}::`);
+  function closeVideoCall(peerConnection, pcIndex) {
+    console.log(':: closeVideoCall ::');
+    const videoEl = document.getElementById(`remote-video-${pcIndex}`);
+    if (videoEl) {
+      videoEl.srcObject.getTracks().forEach(track => track.stop());
+      videoEl.removeAttribute('src');
+      videoEl.removeAttribute('srcObject');
+    }
+    closePeerConnection(peerConnection);
+    const tileEl = document.getElementById(`tile-remote-video-${pcIndex}`);
+    if (tileEl) tileEl.remove();
   }
 
   async function setUpUserMedia() {
@@ -267,36 +275,50 @@ function Meeting() {
     }
   }
 
-  function toggleVideo() {
-
-  }
-
-  function toggleAudio() {
-    if (localMediaStream) {
-      const audioTracks = localMediaStream.getAudioTracks();
-      if (audioTracks.length) {
-        audioTracks[0].enabled = !audioTracks[0].enabled;
-      }
+  async function setVideoStream(value) {
+    await setUpUserMedia();
+    const videoTracks = localMediaStream.getVideoTracks();
+    if (videoTracks.length) {
+      videoTracks[0].enabled = value;
     }
   }
 
-  function endCall(onBrowserClose) {
-    console.log(':: end-call ::')
+  async function setAudioStream(value) {
+    await setUpUserMedia();
+    const audioTracks = localMediaStream.getAudioTracks();
+    if (audioTracks.length) {
+      audioTracks[0].enabled = value;
+    }
+  }
+
+  function endCall(peerConnections) {
+    if (isHost) {
+      endMeeting();
+      peerConnections.forEach((peerConnection) => closePeerConnection(peerConnection));
+    } else {
+      peerConnections.forEach((peerConnection) => closePeerConnection(peerConnection));
+      history.push('/home');
+    }
+  }
+
+  function endMeeting() {
     getSocket().then((socketCn) => {
-      console.log('firing close connection event');
-      socketCn.emit('close-connection', {
-       id: socketCn.id,
+      console.log(':: firing end-meeting event ::');
+      socketCn.emit('end-meeting', {
        to: meetId,
       });
-      if (onBrowserClose) {
-        disconnect();
-      } else {
-        history.push('/home');
-      }
     });
+    history.push('/home');
+  }
+
+  function onEndMeeting(peerConnections) {
+    alert('Meeting has been ended by the host');
+    peerConnections.forEach((peerConnection) => closePeerConnection(peerConnection));
+    history.push('/home');
   }
 
   function onCloseConnection(event, peerConnections, participants) {
+    console.log(':: onCloseConnection ::');
     const pcIndex = indexOfConnection(participants, event.id);
     const videoEl = document.getElementById(`remote-video-${pcIndex}`);
     if (videoEl) {
@@ -307,14 +329,6 @@ function Meeting() {
     closePeerConnection(peerConnections[pcIndex]);
     const tileEl = document.getElementById(`tile-remote-video-${pcIndex}`);
     if (tileEl) tileEl.remove();
-  }
-
-  function onBeforeUnload(event) {
-    console.log(':: onBeforeUnload ::');
-    event.preventDefault();
-    endCall(true);
-    event.returnValue = 'Meeting ended, please join again';
-    return 'Meeting ended, please join again';
   }
 
   function indexOfConnection(participants, id) {
@@ -354,7 +368,7 @@ function Meeting() {
         onToggleAudio={() => setAudio(!audio)}
         onToggleVideo={() => setVideo(!video)}
         onToggleMsgTab={() => setShowMsgTab(!showMsgTab)}
-        onEndCall={() => endCall(false)}
+        onEndCall={() => endCall(peerConnections)}
       />
     </div>
   )
