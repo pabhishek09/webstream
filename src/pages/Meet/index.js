@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import VideoTab from './video-tab';
+import Meeting from './meeting';
 import Launch from './launch';
-import getSocket from '../../socket';
+import { getSocket } from '../../socket';
 import { useParams, useHistory } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import  { setConnectionState } from '../../store/connection';
-import './style.css';
 
 function Meet() {
 
@@ -15,12 +14,11 @@ function Meet() {
   const [ socketId, setSocketId ] = useState(null);
 
   const dispatch = useDispatch();
-  const hostName = useSelector((state) => state.connection.host.name);
   const participantName = useSelector((state) => state.connection.participant.name);
 
   useEffect(() => {
     setUpMeet()
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function setUpMeet() {
@@ -52,9 +50,8 @@ function Meet() {
 
   return (
     <div>
-      {hostName && <h3 className="text-white">{ hostName}'s meeting</h3>}
       {!participantName && <Launch onLaunch={(name) => setParticipantDetails(name)}/>} 
-      {participantName && <VideoTab/>} 
+      {participantName && <Meeting/>} 
     </div>
   )
 }

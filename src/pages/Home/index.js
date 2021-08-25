@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import getSocket from '../../socket';
+import { getSocket } from '../../socket';
 import { useHistory } from 'react-router-dom';
 
 
@@ -32,7 +32,7 @@ function Home() {
   }
 
   return (
-    <div className="ml-%0.2 xs:pt-%0.2 sm:pt-%0.2 md:pt-%0.3">
+    <div className="ml-%0.2 pt-%0.3">
       <h1 className="text-white">webstream</h1>
       <div>
         <input type="text" className="input-text mr-2" placeholder="Enter your name" value={name} onChange={(event) => setName(event.target.value)}/>

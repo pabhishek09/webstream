@@ -1,0 +1,19 @@
+
+.tile-container {
+  padding: 8px 16px;
+}
+.tile-container .participant-video {
+  border: 2px solid black;
+  height: 202px;
+  width: 340px;
+}
+.tile-container .participant-details {
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.tile-container .participant-details .tile-icon {
+  width: 32px;
+  height: 32px;
+}

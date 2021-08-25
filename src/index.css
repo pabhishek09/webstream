@@ -26,7 +26,7 @@
 
   /* Typography */
   h1 {
-    @apply md:text-5xl lg:text-6xl;
+    @apply text-5xl md:text-6xl;
     font-family: "Sans Black";
   }
   h2 {

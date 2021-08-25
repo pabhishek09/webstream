@@ -17,4 +17,11 @@ async function getSocket() {
   return socket;
 }
 
-export default getSocket;
+async function disconnect() {
+  socket.disconnect();
+}
+
+export {
+  getSocket,
+  disconnect
+};
