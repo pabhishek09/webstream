@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector,  useDispatch } from 'react-redux';
-import { getSocket, disconnect } from '../../socket';
+import { getSocket } from '../../socket';
 import Tile from '../../components/Tile';
 import VideOptions from '../../components/VideoOptions';
 import iceServers from './iceServers';
@@ -75,6 +75,7 @@ function Meeting() {
     } else {
       setVideoStream(video);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [video]);
 
   useEffect(() => {
@@ -83,6 +84,7 @@ function Meeting() {
     } else {
       setAudioStream(audio);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audio]);
 
   let localMediaStream;
@@ -317,6 +319,7 @@ function Meeting() {
     history.push('/home');
   }
 
+  // eslint-disable-next-line no-unused-vars
   function onCloseConnection(event, peerConnections, participants) {
     console.log(':: onCloseConnection ::');
     const pcIndex = indexOfConnection(participants, event.id);
